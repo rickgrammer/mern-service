@@ -90,7 +90,16 @@ const signout: Route = {
       isUserProtected: true,
       method: 'post',
       handlerFunc(_, res: express.Response) {
-        res.cookie('token', '', {expires: new Date()})
+        let cookieOptions: CookieOptions = {expires: new Date(), httpOnly: true}
+        if (process.env.NODE_ENV !== 'local') {
+          console.log('removing cookie for prod')
+          cookieOptions = {
+            ...cookieOptions,
+            sameSite: "none",
+            secure: true
+          }
+        }
+        res.cookie('token', '', cookieOptions)
         res.status(201).send()
       }
     }
