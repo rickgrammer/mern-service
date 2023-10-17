@@ -1,4 +1,4 @@
-import express from 'express'
+import express, {CookieOptions} from 'express'
 import {sign} from 'jsonwebtoken';
 import { Preference, User,  UserNotFoundError, UserPasswordMisMatchError, getUser, setPreference, validateUser } from '../db/users'
 import {body, validationResult} from "express-validator"
@@ -48,7 +48,7 @@ const signIn: Route = {
             errors: errors.array()
           })
         }
-        
+
         try {
           await validateUser(req.body)
         } catch (e: any) {
@@ -65,11 +65,19 @@ const signIn: Route = {
           throw e
         }
         const token = sign({email: req.body.email}, process.env.JWT_SECRET as string, {expiresIn: '30m'})
-        res.cookie('token', token, {expires: new Date(Date.now() + SESSION_TIMEOUT), httpOnly: true})
+        let cookieOptions: CookieOptions = {expires: new Date(Date.now() + SESSION_TIMEOUT), httpOnly: true}
+        if (process.env.NODE_ENV !== 'local') {
+          console.log('setting cookie for prod')
+          cookieOptions = {
+            ...cookieOptions,
+            sameSite: "none",
+            secure: true
+          }
+        }
+        res.cookie('token', token, cookieOptions)
         res.send({
           msg: "Signed in",
         })
-
       },
     }
   ],
