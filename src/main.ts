@@ -14,7 +14,7 @@ const port = 9900
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-  origin: process.env.NODE_ENV === 'local' ? /.*/ : process.env.ui_domain,
+  origin: process.env.NODE_ENV === 'local' ? /.*/ : process.env.UI_DOMAIN,
   credentials: true
 }))
 
@@ -23,13 +23,11 @@ app.use((req: express.Request, _, next: express.NextFunction) => {
   req.isLoggedIn = false
   const token = req.cookies?.token as string
   try {
-    console.log(process.env.JWT_SECRET)
     const user = verify(token, process.env.JWT_SECRET as string)
     req.isLoggedIn = true
     req.user = user
     next()
   } catch (e) {
-    console.error(e)
     next()
   }
 })
